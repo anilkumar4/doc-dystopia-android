@@ -3,11 +3,12 @@
 
     <string name="app_name">DocDystopia</string>
     <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="hello_world">To use this app, take a photo and select it from the share menu!!</string>
     <string name="maps_api_key">AIzaSyDSzCOvgNLha846NCBU9rCU-80vwlWZfzs</string>
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_location_confirm">LocationConfirm</string>
+    <string name="title_activity_about_me">AboutMeActivity</string>
 
 </resources>
