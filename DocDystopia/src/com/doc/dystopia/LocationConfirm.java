@@ -24,7 +24,7 @@ public class LocationConfirm extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_location_confirm);
-		// Show the Up button in the action bar. foo
+		// Show the Up button in the action bar. 
 		setupActionBar();
 		
 		
