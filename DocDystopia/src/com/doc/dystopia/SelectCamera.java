@@ -38,13 +38,16 @@ public class SelectCamera extends Activity {
 	public void onButton(View view){
 		
 		Intent intent = new Intent(this, LocationConfirm.class);
+
 		
-		//ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		//mImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		//byte[] byteArray = stream.toByteArray();
-
-		//intent.putExtra("image",byteArray);
-
+		//send the image to the map view to be displayed as marker contents. 
+		//Not necessary, commented out in case it becomes desirable
+//		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//		mImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+//		byte[] byteArray = stream.toByteArray();
+//
+//		intent.putExtra("image",byteArray);
+		
 		
 		startActivity(intent);
 		
@@ -78,25 +81,13 @@ public class SelectCamera extends Activity {
 			mImageView = (ImageView) findViewById(R.id.imageView1);
 			Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 
-			// getContentResolver().q
 			mImageBitmap = null;
 
-			// int id = Integer.parseInt(imageUri.toString().substring(
-			// imageUri.toString().lastIndexOf("/") + 1,
-			// imageUri.toString().length()));
-			/*
-			 * mImageBitmap =
-			 * MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(),
-			 * id, MediaStore.Images.Thumbnails.FULL_SCREEN_KIND, null);
-			 */
 			InputStream in = getContentResolver().openInputStream(imageUri);
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inSampleSize = 4;
 			mImageBitmap = BitmapFactory.decodeStream(in, null, options);
 
-			// mImageBitmap =
-			// MediaStore.Images.Media.getBitmap(getContentResolver(),
-			// imageUri);
 
 			mImageView.setImageBitmap(mImageBitmap);
 
