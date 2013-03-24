@@ -1,12 +1,9 @@
 package com.doc.dystopia;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
 import android.app.Activity;
 import android.app.FragmentManager;
-import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
@@ -15,7 +12,6 @@ import android.support.v4.app.NavUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,30 +25,42 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class LocationConfirm extends Activity {
 	private GoogleMap mMap;
-	private LocationManager myLocationManager;
-	private Geocoder geocoder;
+	
+	/**
+	 * NOTE: event listeners and info window adapter need to be recreated if the map ends up being serialized 
+	 * @param markerToInit
+	 */
+	private void initializeMarker(final Marker markerToInit){
+		final TextView locationTextView = new TextView(getBaseContext());
+		locationTextView.setText("loading...");
+		
+		mMap.setInfoWindowAdapter(new InfoWindowAdapter() {
+			@Override public View getInfoContents(Marker marker) {
+				if(markerToInit.equals(marker))
+					return locationTextView;
+				else
+					return null; //fall back to default
+			}
+			
+			@Override public View getInfoWindow(Marker marker) {return null;}
+		});
+		
+		final Geocoder geocoder = new Geocoder(getBaseContext(), Locale.getDefault());
+		
+		new ReverseGeoSyncTask(markerToInit, locationTextView, geocoder).execute();
 
-	private LinearLayout infoWindowLayout;
-	private TextView infoWindowAddrView;
-	
-	Marker mMarker;
-	
-	
-	private void buildInfoWindowView(Marker marker){
-		
-		LinearLayout layout = new LinearLayout(getBaseContext());
-		layout.setOrientation(LinearLayout.HORIZONTAL);
-		
-		TextView locationText = new TextView(getBaseContext());
-		locationText.setText(getLocationDescriptor(marker));
-		
-		layout.addView(locationText);
-		
-		infoWindowAddrView = locationText;
-		infoWindowLayout = layout;
+		//update marker when drag event ends
+		mMap.setOnMarkerDragListener(new OnMarkerDragListener() {
+			@Override
+			public void onMarkerDragEnd(Marker marker) {
+				if(markerToInit.equals(marker))
+					new ReverseGeoSyncTask(marker, locationTextView, geocoder).execute();
+			}
+			
+			@Override public void onMarkerDragStart(Marker marker) {}
+			@Override public void onMarkerDrag(Marker marker) {}
+		});
 	}
-	
-	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,126 +68,34 @@ public class LocationConfirm extends Activity {
 		setContentView(R.layout.activity_location_confirm);
 		// Show the Up button in the action bar. 
 		setupActionBar();
-		
-		
-		geocoder = new Geocoder(getBaseContext(), Locale.getDefault());
-		
 
-		myLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-		
+		//initialize map
 		FragmentManager myFragmentManager = getFragmentManager();
-		MapFragment myMapFragment = (MapFragment) myFragmentManager
-				.findFragmentById(R.id.map);
+		MapFragment myMapFragment = (MapFragment) myFragmentManager.findFragmentById(R.id.map);
 		mMap = myMapFragment.getMap();
-
-
 		mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 		
-		Location lastKnown = myLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		
+		//show marker at last known location
+		LocationManager locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		Location lastKnown = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 		LatLng loc = new LatLng(lastKnown.getLatitude(), lastKnown.getLongitude());
 		
 		MarkerOptions options = new MarkerOptions();
         options.position(loc);
         options.draggable(true);
-
-        mMarker = mMap.addMarker(options);
-        mMarker.setSnippet(getLocationDescriptor(mMarker));
-        mMarker.setTitle("Camera Location");
-        
-		buildInfoWindowView(mMarker);
-
-		mMap.setInfoWindowAdapter(new InfoWindowAdapter() {
-			
-			@Override
-			public View getInfoWindow(Marker marker) {
-				return null;
-			}
-			
-			@Override
-			public View getInfoContents(Marker marker) {
-				return infoWindowLayout;
-			}
-		});
-		
-        mMarker.showInfoWindow();
-
-		
-		mMap.setOnMarkerDragListener(new OnMarkerDragListener() {
-			
-			@Override
-			public void onMarkerDragStart(Marker marker) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void onMarkerDragEnd(Marker marker) {
-				infoWindowAddrView.setText(getLocationDescriptor(marker));
-				marker.showInfoWindow(); //show update		
-			}
-			
-			@Override
-			public void onMarkerDrag(Marker marker) {
-				//not updating location constantly to avoid lag.
-			}
-		});
-		
-		/*
-		mMap.setOnMarkerClickListener(new OnMarkerClickListener() {
-			
-			@Override
-			public boolean onMarkerClick(Marker marker) {
-				if(marker.isInfoWindowShown()){
-					marker.hideInfoWindow();
-				}else{
-					marker.showInfoWindow();
-				}
-				
-				return false;
-			}
-		});*/
-		
-		
+        Marker marker = mMap.addMarker(options);
+		initializeMarker(marker);
 		
 		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 19.0F));
-		
 	}
-	
-	
-	/**
-	 * Try for reverse Geocoded address, fall back on lat/long
-	 * @param marker
-	 * @return
-	 */
-	String getLocationDescriptor(Marker marker){
-		String address = null;
-		List<Address> addresses;
-		try {
-			addresses = geocoder.getFromLocation(marker.getPosition().latitude, marker.getPosition().longitude, 1);
-		} catch (IOException e) {
-			return marker.getPosition().toString();
-		}
-		if (addresses.size() > 0){
-			//just get the first on the list of possibles
-			Address addr = addresses.get(0);
-			address = addr.getThoroughfare() + ", " + addr.getLocality() + ", " + addr.getAdminArea() + ", " + addr.getCountryName();
-		}else{
-			address = "empty list of addresses returned";
-		}
-		
-		return address;
 
-	}
-    
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.
 	 */
 	private void setupActionBar() {
-
 		getActionBar().setDisplayHomeAsUpEnabled(true);
-
 	}
 
 	@Override
