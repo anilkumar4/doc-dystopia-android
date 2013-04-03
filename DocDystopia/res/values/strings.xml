@@ -10,5 +10,8 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_location_confirm">LocationConfirm</string>
     <string name="title_activity_about_me">AboutMeActivity</string>
-
+    <string name="confirm_location">Confirm Location</string>
+    <string name="pseudonym_text">my pseudonym</string>
+    <string name="camera_description_text">describe camera</string>
+    <string name="sharedImgDescription">shared camera image</string>
 </resources>

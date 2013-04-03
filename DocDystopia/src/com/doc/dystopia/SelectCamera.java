@@ -38,16 +38,7 @@ public class SelectCamera extends Activity {
 	public void onButton(View view){
 		
 		Intent intent = new Intent(this, LocationConfirm.class);
-
-		
-		//send the image to the map view to be displayed as marker contents. 
-		//Not necessary, commented out in case it becomes desirable
-//		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//		mImageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-//		byte[] byteArray = stream.toByteArray();
-//
-//		intent.putExtra("image",byteArray);
-		
+		intent.putExtra(Intent.EXTRA_STREAM, getIntent().getParcelableExtra(Intent.EXTRA_STREAM));
 		
 		startActivity(intent);
 		
@@ -78,25 +69,20 @@ public class SelectCamera extends Activity {
 
 		try {
 
-			mImageView = (ImageView) findViewById(R.id.imageView1);
+			mImageView = (ImageView) findViewById(R.id.sharedImg);
 			Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 
 			mImageBitmap = null;
 
 			InputStream in = getContentResolver().openInputStream(imageUri);
-			BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inSampleSize = 4;
-			mImageBitmap = BitmapFactory.decodeStream(in, null, options);
-
-
-			mImageView.setImageBitmap(mImageBitmap);
-
-			/*
-			 * get geoData, compass angle: problem: neither are from photo,
-			 * compass angle likely to be off when sharing. auto geo-tagged
-			 * photos require sharing location setting problem is solvable by
-			 * user inconvenience. acceptable midterm solution.
-			 */
+			try{
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inSampleSize = 4;
+				mImageBitmap = BitmapFactory.decodeStream(in, null, options);
+				mImageView.setImageBitmap(mImageBitmap);
+			}finally{
+				in.close();
+			}
 
 			return;
 		} catch (Exception e) {

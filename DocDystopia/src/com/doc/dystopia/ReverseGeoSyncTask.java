@@ -16,7 +16,6 @@ import com.google.android.gms.maps.model.Marker;
  * kick off the async task to get the location, populate the text view and refresh the marker's infoWindow. 
  * Async because network IO on UI thread is shit
  * @author kinsp1
- *
  */
 public class ReverseGeoSyncTask extends AsyncTask<Void, Void, List<Address>> {
     private TextView mTextView;
@@ -52,7 +51,7 @@ public class ReverseGeoSyncTask extends AsyncTask<Void, Void, List<Address>> {
     
     // a posh toString(). Generates a displayable address string from an address
 	String describeAddress(Address address){
-		return address.getThoroughfare() + " " + address.getLocality() + ", " + address.getAdminArea() + ", " + address.getCountryName();
+		return  address.getSubThoroughfare() + " " + address.getThoroughfare() + " " + address.getLocality() + ", " + address.getAdminArea() + ", " + address.getCountryName();
 	}
     
 }

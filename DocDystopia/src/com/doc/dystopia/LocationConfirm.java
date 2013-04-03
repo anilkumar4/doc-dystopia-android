@@ -1,14 +1,18 @@
 package com.doc.dystopia;
 
+import java.io.FileNotFoundException;
 import java.util.Locale;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,6 +37,7 @@ public class LocationConfirm extends Activity {
 	private void initializeMarker(final Marker markerToInit){
 		final TextView locationTextView = new TextView(getBaseContext());
 		locationTextView.setText("loading...");
+		locationTextView.setWidth(200);
 		
 		mMap.setInfoWindowAdapter(new InfoWindowAdapter() {
 			@Override public View getInfoContents(Marker marker) {
@@ -49,7 +54,7 @@ public class LocationConfirm extends Activity {
 		
 		new ReverseGeoSyncTask(markerToInit, locationTextView, geocoder).execute();
 
-		//update marker when drag event ends
+		//update marker location when drag event ends
 		mMap.setOnMarkerDragListener(new OnMarkerDragListener() {
 			@Override
 			public void onMarkerDragEnd(Marker marker) {
@@ -90,6 +95,18 @@ public class LocationConfirm extends Activity {
 		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 19.0F));
 	}
 
+	
+	public void onButton(View view){
+		Uri imageUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
+	    Log.e(this.getClass().getName(), imageUri==null?"null" : imageUri.toString());
+		try {
+			new UploadFTPTask(getString(R.string.ftp_username), getString(R.string.ftp_password)).execute(getContentResolver().openInputStream(imageUri));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 
 	/**
 	 * Set up the {@link android.app.ActionBar}.
